@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import {
   GoogleAuthProvider,
   getAuth,
+  onAuthStateChanged,
   signInWithPopup,
   signOut,
 } from "firebase/auth";
@@ -23,4 +24,12 @@ export function login() {
 
 export function logout() {
   return signOut(auth);
+}
+
+export function onAuthChanged(callback) {
+  return onAuthStateChanged(auth, (user) => {
+    // 로그인한 유저 정보가 있다면 유지
+    // 유저 정보가 없다면 null
+    callback(user);
+  });
 }
