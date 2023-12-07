@@ -24,7 +24,6 @@ export default function Main() {
           {products &&
             products.map((product) => <Products product={product} />)}
         </ul>
-        <p>dd</p>
       </div>
     </div>
   );

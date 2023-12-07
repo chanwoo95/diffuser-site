@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { get, getDatabase, ref, set } from "firebase/database";
+import { get, getDatabase, ref, remove, set } from "firebase/database";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -30,11 +30,22 @@ export function logout() {
 }
 
 export function onAuthChanged(callback) {
-  return onAuthStateChanged(auth, (user) => {
-    // 로그인한 유저 정보가 있다면 유지
-    // 유저 정보가 없다면 null
-    callback(user);
+  return onAuthStateChanged(auth, async (user) => {
+    const updateUser = user ? await adminsUser(user) : null;
+    callback(updateUser);
   });
+}
+
+async function adminsUser(user) {
+  return get(ref(database, "admins")) //
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        const admins = snapshot.val();
+        const isAdmins = admins.includes(user.uid);
+        return { ...user, isAdmins };
+      }
+      return user;
+    });
 }
 
 export async function getProducts() {
@@ -47,19 +58,39 @@ export async function getProducts() {
     });
 }
 
-export async function addCart(product, quantity) {
+export async function addCart(uid, product, quantity) {
   const id = uuidv4();
-  return set(ref(database, `carts/${id}`), {
+  return set(ref(database, `carts/${uid}/${id}`), {
     ...product,
     id,
     quantity,
   });
 }
 
-export async function loadCart() {
-  return get(ref(database, "carts")).then((snapshot) => {
+export async function loadCart(uid) {
+  return get(ref(database, `carts/${uid}`)).then((snapshot) => {
     if (snapshot.exists()) {
       return Object.values(snapshot.val());
     }
   });
+}
+
+export async function updatedProducts(uid, product) {
+  return set(ref(database, `carts/${uid}/${product.id}`), product);
+}
+
+export async function addNewProduct(image, product) {
+  const id = uuidv4();
+  const format = parseInt(product.price);
+  const price = format.toLocaleString();
+
+  return set(ref(database, `products/${id}`), {
+    ...product,
+    imageURL: image,
+    price,
+  });
+}
+
+export async function removeProducts(uid, product) {
+  return remove(ref(database, `carts/${uid}/${product.id}`));
 }

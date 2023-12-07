@@ -7,6 +7,8 @@ import NewProduct from "./pages/NewProduct";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Main from "./components/Main/Main";
+import Detail from "./pages/Detail";
+import PrivateRoutes from "./components/PrivateRoutes";
 
 const router = createBrowserRouter([
   {
@@ -19,11 +21,23 @@ const router = createBrowserRouter([
       },
       {
         path: "/basket",
-        element: <Basket />,
+        element: (
+          <PrivateRoutes>
+            <Basket />
+          </PrivateRoutes>
+        ),
       },
       {
         path: "/new",
-        element: <NewProduct />,
+        element: (
+          <PrivateRoutes requireAdmins>
+            <NewProduct />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/detail/:productId",
+        element: <Detail />,
       },
     ],
   },

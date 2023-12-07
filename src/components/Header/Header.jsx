@@ -5,14 +5,19 @@ import { AiOutlineUser } from "react-icons/ai";
 import { BiImageAdd } from "react-icons/bi";
 import { BsBag } from "react-icons/bs";
 import Button from "./Button/Button";
-import { login, logout } from "../../api/firebase";
 import Menu from "./Menu/Menu";
 import { useAuthContext } from "../../context/AuthProvider";
+import { loadCart } from "../../api/firebase";
 
 export default function Header() {
-  const { user, login, logout } = useAuthContext();
+  const { user, uid, login, logout } = useAuthContext();
 
   const [active, setActive] = useState(false);
+  const [products, setProducts] = useState();
+
+  useEffect(() => {
+    loadCart(uid).then((item) => setProducts(item));
+  }, [uid]);
 
   return (
     <header className="fixed w-full p-5 border-slate-500 border-y-2 z-10 bg-slate-50 ">
@@ -38,16 +43,23 @@ export default function Header() {
           </li>
         </ul>
         <div className="flex items-center text-xl gap-5">
-          <Link to="/">
+          <Link to="/" className="flex items-center">
             <AiOutlineUser />
+            <p>{user && user.displayName}</p>
           </Link>
-          <Link to="/basket" className="flex items-center">
-            <BsBag />
-            <p className="pl-2">0</p>
-          </Link>
-          <Link to="/new">
-            <BiImageAdd />
-          </Link>
+          {
+            <Link to="/basket" className="flex items-center">
+              <BsBag />
+              <p className="pl-2">{products && products.length}</p>
+            </Link>
+          }
+          {user && user.isAdmins ? (
+            <Link to="/new">
+              <BiImageAdd />
+            </Link>
+          ) : (
+            ""
+          )}
           <Button
             text={user ? "Logout" : "Login"}
             login={user ? logout : login}
